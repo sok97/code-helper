@@ -21,10 +21,6 @@ app.use(express.json({ limit: '1mb' }));
 // Request timing middleware
 app.use((req, res, next) => {
   req.startTime = Date.now();
-  res.on('finish', () => {
-    const duration = Date.now() - req.startTime;
-    res.setHeader('X-Process-Time', duration);
-  });
   next();
 });
 
