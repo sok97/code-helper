@@ -1,0 +1,66 @@
+{
+  "name": "code-helper",
+  "displayName": "Code Helper",
+  "description": "Analyze code quality using Claude AI with maintainability scores, metrics, and suggestions",
+  "version": "0.1.0",
+  "publisher": "codehelper",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other",
+    "Linters",
+    "AI"
+  ],
+  "activationEvents": [
+    "onCommand:codeHelper.analyzeCode",
+    "onView:codeHelperView"
+  ],
+  "main": "./src/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "codeHelper.analyzeCode",
+        "title": "Code Helper: Analyze Selected Code"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "codeHelper.analyzeCode",
+        "key": "ctrl+alt+a",
+        "mac": "cmd+alt+a",
+        "when": "editorTextFocus"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "codeHelper.analyzeCode",
+          "group": "1_modification",
+          "when": "editorTextFocus && !editorReadonly"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "codeHelperContainer",
+          "title": "Code Helper",
+          "icon": "resources/code-helper.svg"
+        }
+      ]
+    },
+    "views": {
+      "codeHelperContainer": [
+        {
+          "id": "codeHelperView",
+          "name": "Analysis Results",
+          "type": "webview"
+        }
+      ]
+    }
+  },
+  "dependencies": {
+    "axios": "^1.4.0"
+  }
+}
