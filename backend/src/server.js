@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
-const config = require('./config');
-const CodeAnalyzer = require('./analyzer');
+const config = require('./config.js');
+const CodeAnalyzer = require('./analyzer.js');
 
 // Validate configuration
 try {
@@ -119,7 +119,7 @@ app.post('/api/analyze', async (req, res) => {
       });
     }
 
-    // Generic error
+
     res.status(500).json({
       success: false,
       error: error.message || 'Internal server error'
@@ -149,5 +149,5 @@ const port = config.apiPort;
 app.listen(port, () => {
   console.log(`Code Helper backend running on http://localhost:${port}`);
   console.log(`Environment: ${config.nodeEnv}`);
-  console.log(`Claude Model: ${config.claudeModel}`);
+  console.log(`Gemini Model: ${config.geminiApiModel}`);
 });

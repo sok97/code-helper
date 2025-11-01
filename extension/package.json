@@ -1,7 +1,7 @@
 {
   "name": "code-helper",
   "displayName": "Code Helper",
-  "description": "Analyze code quality using Claude AI with maintainability scores, metrics, and suggestions",
+  "description": "Analyze code quality using claude AI with maintainability scores, metrics, and suggestions",
   "version": "0.1.0",
   "publisher": "codehelper",
   "engines": {
