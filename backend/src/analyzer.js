@@ -3,7 +3,7 @@ const config = require('./config');
 
 class CodeAnalyzer {
   constructor() {
-    this.genAI = new GoogleGenerativeAI(config.claudeApiKey);
+    this.genAI = new GoogleGenerativeAI(config.geminiApiKey);
   }
 
   buildPrompt(code, language) {

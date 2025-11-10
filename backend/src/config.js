@@ -4,6 +4,8 @@ module.exports = {
 
   geminiApiKey: process.env.GEMINI_API_KEY,
   geminiApiModel: process.env.GEMINI_API_MODEL,
+  
+  
 
 
  
@@ -15,7 +17,7 @@ module.exports = {
   maxCodeSize: 10000,  // maximum code size in characters
 
 
-  supportedLanguages: ['javascript', 'typescript'],
+  supportedLanguages: ['javascript', 'typescript', 'python', 'java'],
 
  
   scoreMin: 0,
