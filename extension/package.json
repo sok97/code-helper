@@ -22,6 +22,10 @@
       {
         "command": "codeHelper.analyzeCode",
         "title": "Code Helper: Analyze Selected Code"
+      },
+      {
+        "command": "codeHelper.generateCode",
+        "title": "Code Helper: Generate Code"
       }
     ],
     "keybindings": [

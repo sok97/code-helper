@@ -22,6 +22,18 @@ class ApiClient {
     );
   }
 
+  async generateCode(prompt, language) {
+    const payload = {
+      prompt,
+      language
+    };
+
+    return this.executeWithRetry(
+      () => this.makeRequest('/api/generate', payload),
+      (error) => this.shouldRetry(error)
+    );
+  }
+
   async makeRequest(endpoint, data) {
     try {
       const response = await axios.post(`${this.baseURL}${endpoint}`, data, {

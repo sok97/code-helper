@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const config = require('./config.js');
 const CodeAnalyzer = require('./analyzer.js');
+const CodeGenerator = require('./codeGenerator.js');
 
 // Validate configuration
 try {
@@ -13,6 +14,7 @@ try {
 
 const app = express();
 const analyzer = new CodeAnalyzer();
+const generator = new CodeGenerator();
 
 // Middleware
 app.use(cors());
@@ -119,6 +121,63 @@ app.post('/api/analyze', async (req, res) => {
       });
     }
 
+
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Internal server error'
+    });
+  }
+});
+
+// Code generation endpoint
+app.post('/api/generate', async (req, res) => {
+  try {
+    const { prompt, language } = req.body;
+    const startTime = Date.now();
+
+    // Validation: required fields
+    if (!prompt) {
+      return res.status(400).json({
+        success: false,
+        error: 'Prompt cannot be empty'
+      });
+    }
+
+    if (!language) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required field: language'
+      });
+    }
+
+    // Log request
+    console.log(`[${new Date().toISOString()}] Generation request - Language: ${language}, Prompt length: ${prompt.length}`);
+
+    // Call generator
+    const generationResult = await generator.generateCode(prompt, language);
+
+    // Add metadata
+    const processingTime = Date.now() - startTime;
+    const response = {
+      ...generationResult,
+      _meta: {
+        processingTime,
+        timestamp: new Date().toISOString()
+      }
+    };
+
+    res.json(response);
+
+  } catch (error) {
+    console.error('Generation error:', error);
+
+    // Handle specific errors similar to analyze endpoint
+    if (error.status === 429) {
+      return res.status(429).json({
+        success: false,
+        error: 'API quota exceeded. Please try again in a few moments.'
+      });
+    }
 
     res.status(500).json({
       success: false,

@@ -32,7 +32,14 @@ function activate(context) {
     () => handleAnalyzeCode(context, webviewProvider, apiClient)
   );
 
+  // Register generate command
+  const generateCommand = vscode.commands.registerCommand(
+    'codeHelper.generateCode',
+    () => handleGenerateCode(context, apiClient)
+  );
+
   context.subscriptions.push(analyzeCommand);
+  context.subscriptions.push(generateCommand);
 }
 
 function deactivate() {
@@ -57,27 +64,51 @@ async function handleAnalyzeCode(context, webviewProvider, apiClient) {
       return;
     }
 
-    // Get language and filename
-    const language = editor.document.languageId;
-    const fileName = editor.document.fileName;
-    const fileSize = selectedText.length;
+  } catch (error) {
+    console.error('Error in handleAnalyzeCode:', error);
+    vscode.window.showErrorMessage(`Error: ${error.message}`);
+  }
+}
 
-    // Validate language
-    if (!['javascript', 'typescript'].includes(language)) {
-      vscode.window.showErrorMessage(
-        `Language "${language}" is not supported. Currently supporting: JavaScript, TypeScript`
-      );
+async function handleGenerateCode(context, apiClient) {
+  try {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+      vscode.window.showErrorMessage('No active editor found');
       return;
     }
 
-    // Show sidebar
-    vscode.commands.executeCommand('codeHelperView.focus');
+    const language = editor.document.languageId;
 
-    // Trigger analysis
-    await webviewProvider.analyzeCode(selectedText, language, fileName, fileSize);
+    const prompt = await vscode.window.showInputBox({
+      placeHolder: 'Describe the code you want to generate...',
+      prompt: `Generate ${language} code`
+    });
+
+    if (!prompt) return;
+
+    // Show progress
+    await vscode.window.withProgress({
+      location: vscode.ProgressLocation.Notification,
+      title: "Generating code...",
+      cancellable: false
+    }, async (progress) => {
+      try {
+        const result = await apiClient.generateCode(prompt, language);
+
+        if (result.success && result.code) {
+          // Insert code at cursor
+          editor.edit(editBuilder => {
+            editBuilder.insert(editor.selection.active, result.code);
+          });
+        }
+      } catch (error) {
+        vscode.window.showErrorMessage(`Generation failed: ${error.userMessage || error.message}`);
+      }
+    });
 
   } catch (error) {
-    console.error('Error in handleAnalyzeCode:', error);
+    console.error('Error in handleGenerateCode:', error);
     vscode.window.showErrorMessage(`Error: ${error.message}`);
   }
 }

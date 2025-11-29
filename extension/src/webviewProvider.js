@@ -17,6 +17,45 @@ class WebviewProvider {
     };
 
     this.webview.html = this.getIdleHtml();
+
+    // Handle messages from the webview
+    webviewView.webview.onDidReceiveMessage(async (message) => {
+      switch (message.command) {
+        case 'generateCode':
+          await this.handleGenerateCode(message.prompt);
+          break;
+      }
+    });
+  }
+
+  async handleGenerateCode(prompt) {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+      vscode.window.showErrorMessage('Please open a file to generate code into.');
+      return;
+    }
+
+    const language = editor.document.languageId;
+
+    try {
+      // Update UI to loading state (optional, or just show progress notification)
+      await vscode.window.withProgress({
+        location: vscode.ProgressLocation.Notification,
+        title: "Generating code...",
+        cancellable: false
+      }, async (progress) => {
+        const result = await this.apiClient.generateCode(prompt, language);
+
+        if (result.success && result.code) {
+          // Insert code at cursor
+          await editor.edit(editBuilder => {
+            editBuilder.insert(editor.selection.active, result.code);
+          });
+        }
+      });
+    } catch (error) {
+      vscode.window.showErrorMessage(`Generation failed: ${error.userMessage || error.message}`);
+    }
   }
 
   async analyzeCode(code, language, fileName, fileSize) {
@@ -88,6 +127,53 @@ class WebviewProvider {
       font-size: 14px;
       color: var(--vscode-descriptionForeground);
       line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      border: 1px solid var(--vscode-inputBorder);
+      border-radius: 6px;
+      padding: 15px;
+      background: var(--vscode-input-background);
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 80px;
+      padding: 8px;
+      background: var(--vscode-input-background);
+      color: var(--vscode-input-foreground);
+      border: 1px solid var(--vscode-inputBorder);
+      border-radius: 4px;
+      resize: vertical;
+      font-family: inherit;
+      margin-bottom: 10px;
+    }
+
+    textarea:focus {
+      outline: 1px solid var(--vscode-focusBorder);
+    }
+
+    button {
+      background: var(--vscode-button-background);
+      color: var(--vscode-button-foreground);
+      border: none;
+      padding: 8px 16px;
+      border-radius: 2px;
+      cursor: pointer;
+      width: 100%;
+      font-size: 13px;
+    }
+
+    button:hover {
+      background: var(--vscode-button-hoverBackground);
     }
   </style>
 </head>
@@ -95,12 +181,43 @@ class WebviewProvider {
   <div class="container">
     <div class="header">
       <h1>📊 Code Helper</h1>
+    </div>
+
+    <div class="card">
+      <div class="section-title">✨ Generate Code</div>
+      <p class="intro-text" style="margin-bottom: 10px; font-size: 12px;">
+        Describe what you want to create, and AI will generate the code for you.
+      </p>
+      <textarea id="promptInput" placeholder="E.g., Create a function to validate email addresses..."></textarea>
+      <button id="generateBtn">Generate Code</button>
+    </div>
+
+    <div class="card">
+      <div class="section-title">🔍 Analyze Code</div>
       <p class="intro-text">
         Select code in your editor and use the <strong>Code Helper: Analyze Selected Code</strong>
-        command (Ctrl+Alt+A) to get an AI-powered analysis of your code quality.
+        command (Ctrl+Alt+A) to get an AI-powered analysis.
       </p>
     </div>
   </div>
+
+  <script>
+    const vscode = acquireVsCodeApi();
+    const generateBtn = document.getElementById('generateBtn');
+    const promptInput = document.getElementById('promptInput');
+
+    generateBtn.addEventListener('click', () => {
+      const prompt = promptInput.value.trim();
+      if (prompt) {
+        vscode.postMessage({
+          command: 'generateCode',
+          prompt: prompt
+        });
+        // Optional: Clear input or show loading state in button
+        promptInput.value = '';
+      }
+    });
+  </script>
 </body>
 </html>`;
   }
@@ -499,7 +616,7 @@ class WebviewProvider {
 
 // Monkey-patch for running in Node context
 if (typeof document === 'undefined') {
-  WebviewProvider.prototype.escapeHtml = function(text) {
+  WebviewProvider.prototype.escapeHtml = function (text) {
     if (!text) return '';
     return String(text)
       .replace(/&/g, '&amp;')
