@@ -204,11 +204,6 @@ We welcome contributions! Here's how you can help:
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 🙏 Acknowledgments
-
-- Powered by [Google Gemini AI](https://ai.google.dev/)
-- Built with ❤️ for the VS Code community
-
 ---
 
 **Made with** ❤️ **by** [sok97](https://github.com/sok97)
